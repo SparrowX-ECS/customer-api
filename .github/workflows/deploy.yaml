@@ -146,7 +146,6 @@ jobs:
           repository: SparrowX-ECS/ecs-infrastructure
           ref: main
           path: ecs-infrastructure
-          token: ${{ secrets.INFRA_REPO_TOKEN }}
 
       - name: Deploy ECS service
         env:
