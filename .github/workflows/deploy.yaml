@@ -46,7 +46,7 @@ jobs:
                 - 'src/**'
                 - 'Dockerfile'
                 - 'ecs-parameters.yaml'
-                - '.github/workflows/customer-api.yml'
+                - '.github/workflows/deploy.yaml'
   test:
     name: Test
     needs: changes
