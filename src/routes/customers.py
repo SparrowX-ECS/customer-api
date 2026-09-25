@@ -81,3 +81,5 @@ def delete_customer(customer_id: int, session: Session = Depends(get_session)) -
         raise HTTPException(status_code=404, detail="Customer not found")
     session.delete(customer)
     session.commit()
+
+# add auth for delete route
