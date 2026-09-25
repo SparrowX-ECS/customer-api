@@ -16,7 +16,7 @@ env:
   AWS_REGION: eu-west-1
 
 jobs:
-deploy:
+  redeploy:
     name: Re-Deploy
     if: github.event.inputs.confirmation == 'REDEPLOY'
     runs-on: ubuntu-latest
