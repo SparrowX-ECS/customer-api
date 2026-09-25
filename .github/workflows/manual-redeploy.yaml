@@ -100,7 +100,6 @@ jobs:
           parameters=(
             "EnvironmentName=$ENVIRONMENT_NAME"
             "ServiceName=$SERVICE_NAME"
-            "ImageTag=$IMAGE_TAG"
             "ContainerPort=$CONTAINER_PORT"
             "Cpu=$CPU"
             "Memory=$MEMORY"
