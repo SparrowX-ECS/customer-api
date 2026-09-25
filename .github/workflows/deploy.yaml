@@ -13,11 +13,11 @@ on:
   push:
     branches:
       - main
-  paths:
-        - 'src/**'
-        - 'Dockerfile'
-        - 'ecs-parameters.yaml'
-        - '.github/workflows/customer-api.yml'
+    paths:
+          - 'src/**'
+          - 'Dockerfile'
+          - 'ecs-parameters.yaml'
+          - '.github/workflows/customer-api.yml'
 
 permissions:
   contents: read
