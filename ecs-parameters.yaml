@@ -18,7 +18,7 @@ deployment:
 
 loadBalancer:
   pathPattern: /api/customer/*
-  listenerRulePriority: 100
+  listenerRulePriority: 90
   healthCheckPath: /health
 
 database:

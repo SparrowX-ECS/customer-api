@@ -262,7 +262,6 @@ jobs:
           parameters=(
             "EnvironmentName=$ENVIRONMENT_NAME"
             "ServiceName=$SERVICE_NAME"
-            "ImageTag=$IMAGE_TAG"
             "ContainerPort=$CONTAINER_PORT"
             "Cpu=$CPU"
             "Memory=$MEMORY"
@@ -280,6 +279,10 @@ jobs:
               "DatabasePort=$DATABASE_PORT"
               "DatabaseName=$DATABASE_NAME"
             )
+          fi
+
+          if [[ "${{ needs.changes.outputs.code }}" == "true" ]]; then
+            parameters+=("ImageTag=${GITHUB_SHA}")
           fi
 
           aws cloudformation deploy \
