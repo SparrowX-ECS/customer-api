@@ -4,9 +4,20 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+        - 'src/**'
+        - 'Dockerfile'
+        - 'ecs-parameters.yaml'
+        - '.github/workflows/customer-api.yml'
+
   push:
     branches:
       - main
+  paths:
+        - 'src/**'
+        - 'Dockerfile'
+        - 'ecs-parameters.yaml'
+        - '.github/workflows/customer-api.yml'
 
 permissions:
   contents: read
@@ -15,8 +26,31 @@ env:
   AWS_REGION: eu-west-1
 
 jobs:
+  changes:
+      runs-on: ubuntu-latest
+      outputs:
+        code: ${{ steps.filter.outputs.code }}
+        deploy: ${{ steps.filter.outputs.deploy }}
+
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: dorny/paths-filter@v3
+          id: filter
+          with:
+            filters: |
+              code:
+                - 'src/**'
+                - 'Dockerfile'
+              deploy:
+                - 'src/**'
+                - 'Dockerfile'
+                - 'ecs-parameters.yaml'
+                - '.github/workflows/customer-api.yml'
   test:
     name: Test
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -52,8 +86,12 @@ jobs:
 
   build:
     name: Build
-    needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, test]
+    if: |
+      needs.changes.outputs.code == 'true' &&
+      needs.test.result == 'success' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     permissions:
@@ -135,8 +173,14 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: [test, build]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [changes, test, build]
+    if: |
+      always() &&
+      needs.changes.outputs.deploy == 'true' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
+      (needs.build.result == 'success' || needs.build.result == 'skipped')
     runs-on: ubuntu-latest
 
     permissions:
