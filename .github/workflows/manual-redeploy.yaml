@@ -21,5 +21,5 @@ jobs:
     uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v1.0.2
     with:
       database-enabled: true
-      update-image: true
+      update-image: false
       job-name: Re-Deploy
