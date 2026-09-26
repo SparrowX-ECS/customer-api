@@ -11,13 +11,14 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 env:
   AWS_REGION: eu-west-1
     
 jobs:
   redeploy:
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v1.0.0
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v1.0.2
     with:
       database-enabled: true
       update-image: true
