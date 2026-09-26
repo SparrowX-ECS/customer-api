@@ -29,13 +29,13 @@ jobs:
   changes:
     uses: SparrowX-ECS/workflows-templates/.github/workflows/changes.yaml@v1.0.0
 
-test:
-  needs: changes
-  if: needs.changes.outputs.code == 'true'
-  uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v1.0.0
-  with:
-    runtime: python
-    database: true
+  test:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v1.0.0
+    with:
+      runtime: python
+      database: true
 
   build:
     name: Build
