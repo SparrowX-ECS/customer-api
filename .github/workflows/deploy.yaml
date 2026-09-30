@@ -27,41 +27,35 @@ env:
   AWS_REGION: eu-west-1
 
 jobs:
-  changes:
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/changes.yaml@v2.1.4
+  pre-build:
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/pre-build.yaml@v3.0.0
 
   test:
-    needs: changes
-    if: |
-      needs.changes.outputs.code == 'true' ||
-      needs.changes.outputs.ecrEmpty == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v2.1.4
+    needs: pre-build
+    if: needs.pre-build.outputs.build-needed == 'true'
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v3.0.0
     with:
       runtime: python
       database: true
 
   build:
     name: Build
-    needs: [changes, test]
+    needs: [pre-build, test]
     if: |
         needs.test.result == 'success' &&
         github.event_name == 'push' &&
         github.ref == 'refs/heads/main' &&
-        (
-          needs.changes.outputs.code == 'true' ||
-          needs.changes.outputs.ecrEmpty == 'true'
-        )
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v2.1.4
+        needs.pre-build.outputs.build-needed == 'true'
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v3.0.0
 
   deploy:
     name: Deploy
-    needs: [changes, test, build]
+    needs: [pre-build, build]
     if: |
       always() &&
-      needs.changes.outputs.deploy == 'true' &&
+      needs.pre-build.outputs.deploy-needed == 'true' &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
-      (needs.test.result == 'success' || needs.test.result == 'skipped') &&
       (needs.build.result == 'success' || needs.build.result == 'skipped')
     uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v2.1.4
     with:
