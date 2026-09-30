@@ -3,10 +3,10 @@ project:
   environment: dev
 
 service:
-  nameSpace: sparrowx/dev
   name: customer-api
 
 image:
+  nameSpace: sparrowx/dev
   repository: customerapi
 
 container:
