@@ -18,7 +18,7 @@ env:
     
 jobs:
   redeploy:
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v1.0.2
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v2.0.1
     with:
       database-enabled: true
       update-image: false

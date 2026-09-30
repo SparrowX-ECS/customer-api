@@ -1,17 +1,17 @@
-environment:
+project:
   name: sparrowx
+  environment: dev
 
 service:
+  nameSpace: sparrowx/dev
   name: customer-api
-  stack: sparrowx-customer-api
 
 image:
-  repository: customer-api
+  repository: customerapi
 
 container:
   port: 8000
-  cpu: 256
-  memory: 512
+  size: micro
 
 deployment:
   desiredCount: 1
@@ -23,12 +23,6 @@ loadBalancer:
 
 database:
   enabled: true
-  stack: sparrowx-database
   endpoint: ''
   port: 5432
   name: customerdb
-  outputs:
-    endpoint: CustomerDatabaseEndpoint
-    port: CustomerDatabasePort
-    secret_arn: CustomerDatabaseSecretArn
-    security_group_id: CustomerDatabaseSecurityGroupId
