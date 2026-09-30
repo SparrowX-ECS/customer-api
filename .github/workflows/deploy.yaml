@@ -28,14 +28,14 @@ env:
 
 jobs:
   changes:
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/changes.yaml@v2.1.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/changes.yaml@v2.1.4
 
   test:
     needs: changes
     if: |
       needs.changes.outputs.code == 'true' ||
       needs.changes.outputs.ecrEmpty == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v2.1.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v2.1.4
     with:
       runtime: python
       database: true
@@ -51,7 +51,7 @@ jobs:
           needs.changes.outputs.code == 'true' ||
           needs.changes.outputs.ecrEmpty == 'true'
         )
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v2.1.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v2.1.4
 
   deploy:
     name: Deploy
@@ -63,7 +63,7 @@ jobs:
       github.ref == 'refs/heads/main' &&
       (needs.test.result == 'success' || needs.test.result == 'skipped') &&
       (needs.build.result == 'success' || needs.build.result == 'skipped')
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v2.1.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v2.1.4
     with:
       database-enabled: true
-      update-image: ${{ needs.changes.outputs.code == 'true' }}
+      update-image: ${{ needs.build.result == 'success' }}
