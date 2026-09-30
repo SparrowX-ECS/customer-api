@@ -18,8 +18,8 @@ env:
     
 jobs:
   redeploy:
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v3.0.0
+    name: Re-Deploy
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v3.1.0
     with:
       database-enabled: true
       update-image: false
-      job-name: Re-Deploy
