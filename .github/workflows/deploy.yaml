@@ -49,7 +49,7 @@ jobs:
         github.ref == 'refs/heads/main' &&
         (
           needs.changes.outputs.code == 'true' ||
-          needs.changes.outputs.ecr-empty == 'true'
+          needs.changes.outputs.ecrEmpty == 'true'
         )
     uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v2.1.3
 
