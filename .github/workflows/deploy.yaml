@@ -28,8 +28,8 @@ env:
 
 jobs:
   pre-build:
-  name: Pre-Build
-  uses: SparrowX-ECS/workflows-templates/.github/workflows/pre-build.yaml@v3.1.0
+    name: Pre-Build
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/pre-build.yaml@v3.1.0
 
   test:
     name: Test
