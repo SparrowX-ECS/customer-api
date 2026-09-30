@@ -28,7 +28,6 @@ env:
 
 jobs:
   pre-build:
-    name: Pre-Build
     uses: SparrowX-ECS/workflows-templates/.github/workflows/pre-build.yaml@v3.1.0
 
   test:
@@ -41,7 +40,6 @@ jobs:
       database: true
 
   build:
-    name: Build
     needs: [pre-build, test]
     if: |
         needs.test.result == 'success' &&
@@ -51,7 +49,6 @@ jobs:
     uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v3.1.0
 
   deploy:
-    name: Deploy
     needs: [pre-build, build]
     if: |
       always() &&
