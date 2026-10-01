@@ -10,7 +10,7 @@ from sqlmodel import SQLModel
 from src.database import create_database_engine, database_url_from_environment
 from src.models import Customer  # noqa: F401 - registers the table with SQLModel metadata
 from src.routes.customers import router as customers_router
-
+from src.routes.health import router as health_router
 
 http_requests_total = Counter(
     "customer_api_http_requests_total",
@@ -66,19 +66,14 @@ def create_app(database_url: str | None = None, enable_metrics: bool = True) -> 
     if enable_metrics:
         application.add_middleware(MetricsMiddleware)
 
-    @application.get("/health", tags=["system"])
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
-
-    @application.get("/api/customer/health", tags=["system"])
-    def api_health() -> dict[str, str]:
-        return {"status": "ok"}
-
     @application.get("/metrics", tags=["system"], include_in_schema=False)
     def metrics() -> Response:
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
+    application.include_router(health_router)
+
     application.include_router(customers_router)
+    
     return application
 
 
