@@ -26,7 +26,7 @@ env:
 jobs:
   pre-build:
     name: Pre-Build
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/pre-build.yaml@vvv4.2.0
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/pre-build.yaml@v4.2.0
     with:
       env-params-file: ecs-parameters-dev.yaml
 
@@ -34,7 +34,7 @@ jobs:
     name: Test
     needs: pre-build
     if: needs.pre-build.outputs.build-needed == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@vvv4.2.0
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v4.2.0
     with:
       runtime: python
       database: true
@@ -47,14 +47,14 @@ jobs:
     if: |
         needs.test.result == 'success' &&
         needs.pre-build.outputs.build-needed == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@vvv4.2.0
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v4.2.0
     with:
       env-params-file: ecs-parameters-dev.yaml
 
   security-scan:
     name: Security Scan
     needs: build
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/security-scan.yaml@vvv4.2.0
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/security-scan.yaml@v4.2.0
     with:
       env-params-file: ecs-parameters-dev.yaml
       image-tag: ${{ needs.build.outputs.image-tag }}
@@ -63,8 +63,8 @@ jobs:
   publish-image-metadata:
     name: Publish Image Metadata
     needs: [security-scan, build]
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@vvv4.2.0
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v4.2.0
     with:
-      ssm-parameter-path: ${{ var.DEV_DEPLOYED_PARAM_STORE_PATH }}
+      ssm-parameter-path: ${{ vars.DEV_DEPLOYED_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-dev.yaml
       image-tag: ${{ needs.build.outputs.image-tag }}
