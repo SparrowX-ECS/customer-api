@@ -9,7 +9,7 @@ from src.models import Customer
 from src.schemas import CustomerCreate, CustomerRead, CustomerUpdate
 
 
-router = APIRouter(prefix="/api/customer")
+router = APIRouter(prefix="/api/customers")
 
 
 def get_session(request: Request) -> Generator[Session, None, None]:
