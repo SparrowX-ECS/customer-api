@@ -9,7 +9,8 @@ on:
           - 'tests/**'
           - 'Dockerfile'
           - 'ecs-parameters-dev.yaml'
-          - '.github/workflows/deploy.yaml'
+          - '.github/workflows/deploy-dev.yaml'
+          
 permissions:
   contents: read
   id-token: write
