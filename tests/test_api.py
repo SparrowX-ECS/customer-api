@@ -30,11 +30,11 @@ def test_health_and_metrics():
 
 def test_customer_crud_and_search():
     application, session = setup_app()
-    create = endpoint(application, "/api/customer/", "POST")
-    list_customers = endpoint(application, "/api/customer/", "GET")
-    get_customer = endpoint(application, "/api/customer/{customer_id}", "GET")
-    update = endpoint(application, "/api/customer/{customer_id}", "PUT")
-    delete = endpoint(application, "/api/customer/{customer_id}", "DELETE")
+    create = endpoint(application, "/api/customers/", "POST")
+    list_customers = endpoint(application, "/api/customers/", "GET")
+    get_customer = endpoint(application, "/api/customers/{customer_id}", "GET")
+    update = endpoint(application, "/api/customers/{customer_id}", "PUT")
+    delete = endpoint(application, "/api/customers/{customer_id}", "DELETE")
 
     customer = create(CustomerCreate(name="Ada Lovelace", email="ada@example.com", company="Analytical Engines"), session)
     assert customer.id == 1
@@ -51,7 +51,7 @@ def test_customer_crud_and_search():
 
 def test_validation_duplicates_and_missing_customers():
     application, session = setup_app()
-    create = endpoint(application, "/api/customer/", "POST")
+    create = endpoint(application, "/api/customers/", "POST")
     with pytest.raises(ValidationError):
         CustomerCreate(name="", email="not-an-email")
     create(CustomerCreate(name="First", email="same@example.com"), session)
@@ -65,7 +65,7 @@ def test_openapi_documents_contract():
     application, session = setup_app()
     spec = application.openapi()
     session.close()
-    assert "/api/customer/" in spec["paths"]
-    assert "/api/customer/{customer_id}" in spec["paths"]
-    assert "post" in spec["paths"]["/api/customer/"]
-    assert "delete" in spec["paths"]["/api/customer/{customer_id}"]
+    assert "/api/customers/" in spec["paths"]
+    assert "/api/customers/{customer_id}" in spec["paths"]
+    assert "post" in spec["paths"]["/api/customers/"]
+    assert "delete" in spec["paths"]["/api/customers/{customer_id}"]
