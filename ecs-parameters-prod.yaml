@@ -1,12 +1,12 @@
 project:
   name: sparrowx
-  environment: dev
+  environment: prod
 
 service:
   name: customer-api
 
 image:
-  nameSpace: sparrowx/dev
+  nameSpace: sparrowx/prod
   repository: customerapi
 
 container:
@@ -20,6 +20,7 @@ loadBalancer:
   pathPattern: /api/customers/*
   listenerRulePriority: 100
   healthCheckPath: /health
+  smokeTestPath: /api/customers/health
 
 database:
   enabled: true

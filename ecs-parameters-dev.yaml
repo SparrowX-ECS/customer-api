@@ -1,0 +1,29 @@
+project:
+  name: sparrowx
+  environment: dev
+
+service:
+  name: customer-api
+
+image:
+  nameSpace: sparrowx/dev
+  repository: customerapi
+
+container:
+  port: 8000
+  size: micro
+
+deployment:
+  desiredCount: 1
+
+loadBalancer:
+  pathPattern: /api/customers/*
+  listenerRulePriority: 100
+  healthCheckPath: /health
+  smokeTestPath: /api/customers/health
+
+database:
+  enabled: true
+  endpoint: ''
+  port: 5432
+  name: customerdb
