@@ -27,7 +27,7 @@ env:
 jobs:
   deployment-guard:
     name: Deployment Guard
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v4.5.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v4.5.2
     with:
       env-params-file: ecs-parameters-dev.yaml
       environment: dev
@@ -36,7 +36,7 @@ jobs:
     name: Pre-Build
     needs: deployment-guard
     if: needs.deployment-guard.outputs.deployment-enabled == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/pre-build.yaml@v4.5.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/pre-build.yaml@v4.5.2
     with:
       env-params-file: ecs-parameters-dev.yaml
 
@@ -44,7 +44,7 @@ jobs:
     name: Test
     needs: pre-build
     if: needs.pre-build.outputs.build-needed == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v4.5.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v4.5.2
     with:
       env-params-file: ecs-parameters-dev.yaml
       runtime: python
@@ -58,14 +58,14 @@ jobs:
     if: |
         needs.test.result == 'success' &&
         needs.pre-build.outputs.build-needed == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v4.5.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v4.5.2
     with:
       env-params-file: ecs-parameters-dev.yaml
 
   security-scan:
     name: Security Scan
     needs: build
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/security-scan.yaml@v4.5.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/security-scan.yaml@v4.5.2
     with:
       env-params-file: ecs-parameters-dev.yaml
       image-tag: ${{ needs.build.outputs.image-tag }}
@@ -74,7 +74,7 @@ jobs:
   publish-image-metadata:
     name: Publish Image Metadata
     needs: [security-scan, build]
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v4.5.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v4.5.2
     with:
       ssm-parameter-path: ${{ vars.DEV_DEPLOYED_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-dev.yaml
