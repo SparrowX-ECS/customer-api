@@ -15,7 +15,7 @@ permissions:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
-    
+
 jobs:
   confirm-promotion:
     name: Confirm Production Promotion
@@ -31,21 +31,21 @@ jobs:
   deployment-guard:
     name: Deployment Guard
     needs: confirm-promotion
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v4.5.2
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v5.0.1
     with:
       env-params-file: ecs-parameters-prod.yaml
       environment: prod
 
   # Resolve the candidate image tag and digest from paramstore
-  # The Job has an internal validation logic, which will be run against the image on the dev ECR repo, 
+  # The Job has an internal validation logic, which will be run against the image on the dev ECR repo,
   # before copying it to the prod ECR repo. This is to ensure consistency.
   resolve-image:
     name: Resolve Candidate Image
-    needs: 
+    needs:
       - confirm-promotion
       - deployment-guard
     if: needs.deployment-guard.outputs.deployment-enabled == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v4.5.2
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v5.0.1
     with:
       ssm-parameter-path: ${{ vars.PROD_CANDIDATE_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-dev.yaml
@@ -53,43 +53,72 @@ jobs:
   # Promoting Image to Production ECR repo
   copy-image:
     name: Copy Image to Production ECR
-    needs: resolve-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/copy-image.yaml@v4.5.2
+    needs:
+      - resolve-image
+      - verify-source-image-signature
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/copy-image.yaml@v5.0.1
     with:
       image-tag: ${{ needs.resolve-image.outputs.image-tag }}
       image-digest: ${{ needs.resolve-image.outputs.image-digest }}
       source-env-params-file: ecs-parameters-dev.yaml
       target-env-params-file: ecs-parameters-prod.yaml
 
+  verify-source-image-signature:
+    name: Verify Source Image Signature
+    needs: resolve-image
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.1
+    with:
+      image-uri: ${{ needs.resolve-image.outputs.image-uri }}
+      certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
+
+  verify-target-image-signature:
+    name: Verify Target Image Signature
+    needs: copy-image
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.1
+    with:
+      image-uri: ${{ needs.copy-image.outputs.image-uri }}
+      certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
+
   # Promoting Image to Production Deployment
   promote:
     name: Promote to Production
-    needs: [resolve-image, copy-image]
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v4.5.2
+    needs:
+      - verify-target-image-signature
+      - copy-image
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v5.0.1
     with:
       environment: prod
       database-enabled: true
       env-params-file: ecs-parameters-prod.yaml
-      image-tag: ${{ needs.resolve-image.outputs.image-tag }}
-
+      image-tag: ${{ needs.copy-image.outputs.image-tag }}
 
   # Run smoke tests against the deployed service.
   smoke-test:
     name: Smoke Test Production
     needs: promote
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v4.5.2
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v5.0.1
     with:
       env-params-file: ecs-parameters-prod.yaml
       base-url: ${{ vars.PROD_BASE_URL }}
       timeout: '120'
 
+  # Future Improvments, higher coverage in tested, quality gate, and automated Roll Back
+  # Add API Tests, and Integration Tests Here
+
+  # Add a production quality gate here,
+  # if it passes publish image metadata to keep record of the current deployed artifact
+  # else, rollback to the previous stable image, the one stored in param store "PROD_DEPLOYED_PARAM_STORE_PATH"
+
   # Publish Image metadata only if deployment and smoke tests are successful
   # Image will be marked as candidate for promotion to production
   publish-image-metadata:
     name: Publish Image Metadata
-    needs: [smoke-test, resolve-image]
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v4.5.2
+    needs:
+      - smoke-test
+      - copy-image
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v5.0.1
     with:
       ssm-parameter-path: ${{ vars.PROD_DEPLOYED_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-prod.yaml
-      image-tag: ${{ needs.resolve-image.outputs.image-tag }}
+      image-tag: ${{ needs.copy-image.outputs.image-tag }}
+      image-uri: ${{ needs.copy-image.outputs.image-uri }}
