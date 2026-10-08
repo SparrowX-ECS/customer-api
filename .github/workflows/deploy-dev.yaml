@@ -20,7 +20,7 @@ jobs:
   deployment-guard:
     name: Deployment Guard
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v5.0.2
     with:
       env-params-file: ecs-parameters-dev.yaml
       environment: dev
@@ -29,7 +29,7 @@ jobs:
     name: Resolve Candidate Image
     needs: deployment-guard
     if: needs.deployment-guard.outputs.deployment-enabled == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v5.0.2
     with:
       ssm-parameter-path: ${{ vars.DEV_DEPLOYED_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-dev.yaml
@@ -37,17 +37,16 @@ jobs:
   verify-image-signature:
     name: Verify Image Signature
     needs: resolve-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.2
     with:
       image-uri: ${{ needs.resolve-image.outputs.image-uri }}
-      certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
-
+    
   deploy:
     name: Deploy to Development
     needs:
       - resolve-image
       - verify-image-signature
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v5.0.2
     with:
       environment: dev
       database-enabled: true
@@ -58,7 +57,7 @@ jobs:
   smoke-test:
     name: Smoke Test Development
     needs: deploy
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v5.0.2
     with:
       env-params-file: ecs-parameters-dev.yaml
       base-url: ${{ vars.DEV_BASE_URL }}
@@ -67,7 +66,7 @@ jobs:
   dast:
     name: Dynamic Application Security Scan
     needs: deploy
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/dast.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/dast.yaml@v5.0.2
     with:
       runtime: python
       base-url: ${{ vars.DEV_BASE_URL }}
@@ -77,7 +76,7 @@ jobs:
     needs:
       - smoke-test
       - dast
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/dev-quality-gate.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/dev-quality-gate.yaml@v5.0.2
     with:
       dast-artifact: ${{ needs.dast.outputs.artifact-name }}
       security-policy-file: app-sec-policy.yaml
@@ -87,7 +86,7 @@ jobs:
   publish-image-metadata:
     name: Publish Image Metadata
     needs: [dev-quality-gate, resolve-image]
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v5.0.2
     with:
       ssm-parameter-path: ${{ vars.PROD_CANDIDATE_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-dev.yaml
