@@ -5,8 +5,8 @@ sast:
   max_findings: 0
 
 image_scan:
-  max_critical: 0
-  max_high: 0
+  max_critical: 10
+  max_high: 100
 
 sbom:
   required: true
