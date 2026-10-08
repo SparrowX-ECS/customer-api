@@ -31,7 +31,7 @@ jobs:
   deployment-guard:
     name: Deployment Guard
     needs: confirm-promotion
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v5.0.2
     with:
       env-params-file: ecs-parameters-prod.yaml
       environment: prod
@@ -45,7 +45,7 @@ jobs:
       - confirm-promotion
       - deployment-guard
     if: needs.deployment-guard.outputs.deployment-enabled == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v5.0.2
     with:
       ssm-parameter-path: ${{ vars.PROD_CANDIDATE_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-dev.yaml
@@ -56,7 +56,7 @@ jobs:
     needs:
       - resolve-image
       - verify-source-image-signature
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/copy-image.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/copy-image.yaml@v5.0.2
     with:
       image-tag: ${{ needs.resolve-image.outputs.image-tag }}
       image-digest: ${{ needs.resolve-image.outputs.image-digest }}
@@ -66,7 +66,7 @@ jobs:
   verify-source-image-signature:
     name: Verify Source Image Signature
     needs: resolve-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.2
     with:
       image-uri: ${{ needs.resolve-image.outputs.image-uri }}
       certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
@@ -74,7 +74,7 @@ jobs:
   verify-target-image-signature:
     name: Verify Target Image Signature
     needs: copy-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.2
     with:
       image-uri: ${{ needs.copy-image.outputs.image-uri }}
       certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
@@ -85,7 +85,7 @@ jobs:
     needs:
       - verify-target-image-signature
       - copy-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v5.0.2
     with:
       environment: prod
       database-enabled: true
@@ -96,7 +96,7 @@ jobs:
   smoke-test:
     name: Smoke Test Production
     needs: promote
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v5.0.2
     with:
       env-params-file: ecs-parameters-prod.yaml
       base-url: ${{ vars.PROD_BASE_URL }}
@@ -116,7 +116,7 @@ jobs:
     needs:
       - smoke-test
       - copy-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v5.0.1
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v5.0.2
     with:
       ssm-parameter-path: ${{ vars.PROD_DEPLOYED_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-prod.yaml
