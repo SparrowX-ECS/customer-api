@@ -1,14 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
-      "description": "Prometheus datasource used by the Customer API dashboard",
-      "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
-    }
-  ],
   "annotations": {
     "list": []
   },
@@ -18,10 +8,6 @@
   "links": [],
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -49,7 +35,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(customer_api_http_requests_total{job=\"ecs-services\",service=\"customer-api\"}[5m]))",
+          "expr": "sum(rate(customer_api_http_requests_total[5m]))",
           "legendFormat": "requests/sec",
           "refId": "A"
         }
@@ -58,10 +44,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -89,7 +71,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(customer_api_http_requests_total{job=\"ecs-services\",service=\"customer-api\",status=~\"4..|5..\"}[5m]))",
+          "expr": "sum(rate(customer_api_http_requests_total{status=~\"4..|5..\"}[5m]))",
           "legendFormat": "errors/sec",
           "refId": "A"
         }
@@ -98,10 +80,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -129,12 +107,12 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(customer_api_http_request_duration_seconds_bucket{job=\"ecs-services\",service=\"customer-api\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(customer_api_http_request_duration_seconds_bucket[5m])))",
           "legendFormat": "p95",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(customer_api_http_request_duration_seconds_bucket{job=\"ecs-services\",service=\"customer-api\"}[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(customer_api_http_request_duration_seconds_bucket[5m])))",
           "legendFormat": "p50",
           "refId": "B"
         }
@@ -143,10 +121,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -174,7 +148,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (status) (rate(customer_api_http_requests_total{job=\"ecs-services\",service=\"customer-api\"}[5m]))",
+          "expr": "sum by (status) (rate(customer_api_http_requests_total[5m]))",
           "legendFormat": "HTTP {{status}}",
           "refId": "A"
         }
@@ -183,10 +157,6 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -232,7 +202,7 @@
       },
       "targets": [
         {
-          "expr": "max(up{job=\"ecs-services\",service=\"customer-api\"})",
+          "expr": "max(up{service=\"customer-api\"})",
           "legendFormat": "up",
           "refId": "A"
         }
@@ -241,10 +211,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -277,7 +243,7 @@
       },
       "targets": [
         {
-          "expr": "sum(process_resident_memory_bytes{job=\"ecs-services\",service=\"customer-api\"})",
+          "expr": "sum(process_resident_memory_bytes{service=\"customer-api\"})",
           "legendFormat": "resident memory",
           "refId": "A"
         }
@@ -286,10 +252,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -322,7 +284,7 @@
       },
       "targets": [
         {
-          "expr": "time() - max(process_start_time_seconds{job=\"ecs-services\",service=\"customer-api\"})",
+          "expr": "time() - max(process_start_time_seconds{service=\"customer-api\"})",
           "legendFormat": "uptime",
           "refId": "A"
         }
@@ -331,10 +293,6 @@
       "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -362,7 +320,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (path) (rate(customer_api_http_requests_total{job=\"ecs-services\",service=\"customer-api\"}[5m]))",
+          "expr": "sum by (path) (rate(customer_api_http_requests_total[5m]))",
           "legendFormat": "{{path}}",
           "refId": "A"
         }

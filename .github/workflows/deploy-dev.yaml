@@ -57,7 +57,7 @@ jobs:
   smoke-test:
     name: Smoke Test Development
     needs: deploy
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@feature/26-improve-deployment-validation
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v5.1.0
     with:
       env-params-file: ecs-parameters-dev.yaml
       base-url: ${{ vars.DEV_BASE_URL }}
@@ -66,7 +66,7 @@ jobs:
   api-test:
     name: Full Development API Tests
     needs: smoke-test
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/api-test.yaml@feature/26-improve-deployment-validation
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/api-test.yaml@v5.1.0
     with:
       runtime: python
       base-url: ${{ vars.DEV_BASE_URL }}
