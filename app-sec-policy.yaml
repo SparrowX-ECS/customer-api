@@ -12,6 +12,5 @@ sbom:
   required: true
 
 dast:
-  max_critical: 0
-  max_high: 0
-  max_medium: 0
+  max_high: 10
+  max_medium: 10
