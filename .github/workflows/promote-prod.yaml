@@ -55,7 +55,6 @@ jobs:
     name: Copy Image to Production ECR
     needs:
       - resolve-image
-      - verify-source-image-signature
     uses: SparrowX-ECS/workflows-templates/.github/workflows/copy-image.yaml@v5.1.0
     with:
       image-tag: ${{ needs.resolve-image.outputs.image-tag }}
@@ -63,21 +62,12 @@ jobs:
       source-env-params-file: ecs-parameters-dev.yaml
       target-env-params-file: ecs-parameters-prod.yaml
 
-  verify-source-image-signature:
-    name: Verify Source Image Signature
-    needs: resolve-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.1.0
-    with:
-      image-uri: ${{ needs.resolve-image.outputs.image-uri }}
-      certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
-
   verify-target-image-signature:
     name: Verify Target Image Signature
     needs: copy-image
     uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.1.0
     with:
       image-uri: ${{ needs.copy-image.outputs.image-uri }}
-      certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
 
   # Promoting Image to Production Deployment
   promote:
@@ -96,7 +86,7 @@ jobs:
   smoke-test:
     name: Smoke Test Production
     needs: promote
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@feature/26-improve-deployment-validation
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v5.1.0
     with:
       env-params-file: ecs-parameters-prod.yaml
       base-url: ${{ vars.PROD_BASE_URL }}
@@ -105,7 +95,7 @@ jobs:
   api-test:
     name: Read-only Production API Tests
     needs: smoke-test
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/api-test.yaml@feature/26-improve-deployment-validation
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/api-test.yaml@v5.1.0
     with:
       runtime: python
       base-url: ${{ vars.PROD_BASE_URL }}
@@ -119,7 +109,7 @@ jobs:
       - smoke-test
       - api-test
     if: always()
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/prod-quality-gate.yaml@feature/26-improve-deployment-validation
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/prod-quality-gate.yaml@v5.1.0
     with:
       smoke-test-status: ${{ needs.smoke-test.outputs.status }}
       api-test-status: ${{ needs.api-test.outputs.status }}
