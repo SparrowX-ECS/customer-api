@@ -64,3 +64,12 @@ def test_customer_api_rejects_duplicate_email() -> None:
         finally:
             api.delete(f"/api/customers/{customer_id}")
 
+
+def test_routed_openapi_contains_customer_routes() -> None:
+    with client() as api:
+        response = api.get("/api/customers/openapi.json")
+
+    assert response.status_code == 200, response.text
+    paths = response.json()["paths"]
+    assert "/api/customers/" in paths
+    assert "/api/customers/{customer_id}" in paths

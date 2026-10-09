@@ -86,6 +86,10 @@ def create_app(database_url: str | None = None, enable_metrics: bool = True) -> 
 
     application.include_router(health_router)
 
+    @application.get("/api/customers/openapi.json", include_in_schema=False)
+    def customer_openapi() -> dict[str, Any]:
+        return application.openapi()
+
     application.include_router(customers_router)
     
     return application
