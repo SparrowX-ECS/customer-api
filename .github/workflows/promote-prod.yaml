@@ -31,7 +31,7 @@ jobs:
   deployment-guard:
     name: Deployment Guard
     needs: confirm-promotion
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deployment-guard.yaml@v5.1.0
     with:
       env-params-file: ecs-parameters-prod.yaml
       environment: prod
@@ -45,7 +45,7 @@ jobs:
       - confirm-promotion
       - deployment-guard
     if: needs.deployment-guard.outputs.deployment-enabled == 'true'
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v5.1.0
     with:
       ssm-parameter-path: ${{ vars.PROD_CANDIDATE_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-dev.yaml
@@ -56,7 +56,7 @@ jobs:
     needs:
       - resolve-image
       - verify-source-image-signature
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/copy-image.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/copy-image.yaml@v5.1.0
     with:
       image-tag: ${{ needs.resolve-image.outputs.image-tag }}
       image-digest: ${{ needs.resolve-image.outputs.image-digest }}
@@ -66,7 +66,7 @@ jobs:
   verify-source-image-signature:
     name: Verify Source Image Signature
     needs: resolve-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.1.0
     with:
       image-uri: ${{ needs.resolve-image.outputs.image-uri }}
       certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
@@ -74,7 +74,7 @@ jobs:
   verify-target-image-signature:
     name: Verify Target Image Signature
     needs: copy-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/verify-image-signature.yaml@v5.1.0
     with:
       image-uri: ${{ needs.copy-image.outputs.image-uri }}
       certificate-identity-regexp: '^https://github\.com/SparrowX-ECS/.+/.github/workflows/.+@refs/heads/main$'
@@ -85,7 +85,7 @@ jobs:
     needs:
       - verify-target-image-signature
       - copy-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v5.1.0
     with:
       environment: prod
       database-enabled: true
@@ -96,29 +96,71 @@ jobs:
   smoke-test:
     name: Smoke Test Production
     needs: promote
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/smoke-test.yaml@feature/26-improve-deployment-validation
     with:
       env-params-file: ecs-parameters-prod.yaml
       base-url: ${{ vars.PROD_BASE_URL }}
       timeout: '120'
 
-  # Future Improvments, higher coverage in tested, quality gate, and automated Roll Back
-  # Add API Tests, and Integration Tests Here
+  api-test:
+    name: Read-only Production API Tests
+    needs: smoke-test
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/api-test.yaml@feature/26-improve-deployment-validation
+    with:
+      runtime: python
+      base-url: ${{ vars.PROD_BASE_URL }}
+      test-path: api-tests/prod
+      test-command: pytest -q api-tests/prod
+      requirements-file: requirements-dev.txt
 
-  # Add a production quality gate here,
-  # if it passes publish image metadata to keep record of the current deployed artifact
-  # else, rollback to the previous stable image, the one stored in param store "PROD_DEPLOYED_PARAM_STORE_PATH"
+  prod-quality-gate:
+    name: Prod Quality Gate
+    needs:
+      - smoke-test
+      - api-test
+    if: always()
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/prod-quality-gate.yaml@feature/26-improve-deployment-validation
+    with:
+      smoke-test-status: ${{ needs.smoke-test.outputs.status }}
+      api-test-status: ${{ needs.api-test.outputs.status }}
 
-  # Publish Image metadata only if deployment and smoke tests are successful
-  # Image will be marked as candidate for promotion to production
+  # Publish Image metadata only if production quality gate passes, marking a successful deployment
   publish-image-metadata:
     name: Publish Image Metadata
     needs:
-      - smoke-test
+      - prod-quality-gate
       - copy-image
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v5.0.3
+    if: needs.prod-quality-gate.outputs.status == 'passed'
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/publish-image-metadata.yaml@v5.1.0
     with:
       ssm-parameter-path: ${{ vars.PROD_DEPLOYED_PARAM_STORE_PATH }}
       env-params-file: ecs-parameters-prod.yaml
       image-tag: ${{ needs.copy-image.outputs.image-tag }}
       image-uri: ${{ needs.copy-image.outputs.image-uri }}
+
+  # Automated Rollback - In case production quality gate fails, restore the last known stable image.
+  resolve-previous-image:
+    name: Resolve Previous Production Image
+    needs:
+      - deployment-guard
+      - prod-quality-gate
+    if: >
+      needs.deployment-guard.outputs.deployment-enabled == 'true' &&
+      needs.prod-quality-gate.outputs.status == 'failed'
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/resolve-image.yaml@v5.1.0
+    with:
+      ssm-parameter-path: ${{ vars.PROD_DEPLOYED_PARAM_STORE_PATH }}
+      env-params-file: ecs-parameters-prod.yaml
+
+  rollback:
+    name: Rollback Production
+    needs:
+      - resolve-previous-image
+      - prod-quality-gate
+    if: needs.prod-quality-gate.outputs.status == 'failed'
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/deploy.yaml@v5.1.0
+    with:
+      environment: prod
+      database-enabled: true
+      env-params-file: ecs-parameters-prod.yaml
+      image-tag: ${{ needs.resolve-previous-image.outputs.image-tag }}

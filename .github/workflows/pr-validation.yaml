@@ -23,7 +23,7 @@ env:
 jobs:
   test:
     name: Test
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/test.yaml@v5.1.0
     with:
       env-params-file: ecs-parameters-dev.yaml
       runtime: python
@@ -31,13 +31,13 @@ jobs:
 
   source-security-scan:
     name: Source Security Scan
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/source-security-scan.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/source-security-scan.yaml@v5.1.0
     with:
       runtime: python
 
   build:
     name: Build
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/build.yaml@v5.1.0
     with:
       env-params-file: ecs-parameters-dev.yaml
       authoritative-build: false
@@ -48,7 +48,7 @@ jobs:
       - test
       - source-security-scan
       - build
-    uses: SparrowX-ECS/workflows-templates/.github/workflows/pr-quality-gate.yaml@v5.0.3
+    uses: SparrowX-ECS/workflows-templates/.github/workflows/pr-quality-gate.yaml@v5.1.0
     with:
       source-security-artifact: ${{ needs.source-security-scan.outputs.artifact-name }}
       security-policy-file: app-sec-policy.yaml
