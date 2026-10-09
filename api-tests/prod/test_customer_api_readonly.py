@@ -30,7 +30,7 @@ def test_list_customers_is_readable() -> None:
 
 def test_openapi_contains_customer_routes() -> None:
     with client() as api:
-        response = api.get("/openapi.json")
+        response = api.get("/api/customers/openapi.json")
 
     assert response.status_code == 200, response.text
     paths = response.json()["paths"]

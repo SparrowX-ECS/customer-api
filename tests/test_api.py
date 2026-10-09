@@ -91,3 +91,7 @@ async def test_openapi_documents_contract(client: AsyncClient) -> None:
     assert "/api/customers/{customer_id}" in paths
     assert "post" in paths["/api/customers/"]
     assert "delete" in paths["/api/customers/{customer_id}"]
+
+    routed_response = await client.get("/api/customers/openapi.json")
+    assert routed_response.status_code == 200, routed_response.text
+    assert routed_response.json()["paths"] == paths
